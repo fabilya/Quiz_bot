@@ -8,6 +8,7 @@ from aiogram.client.default import DefaultBotProperties
 from aiogram.fsm.storage.memory import MemoryStorage
 from dotenv import load_dotenv
 
+
 load_dotenv()
 
 TOKEN = os.getenv("BOT_TOKEN")
@@ -16,11 +17,13 @@ dp = Dispatcher(storage=MemoryStorage())
 
 
 async def main() -> None:
+    from tg_bot.handlers.handlers import start_project_router
     logging.info('Начало работы бота.')
     await bot.delete_webhook(drop_pending_updates=True)
     await bot.set_my_description(
         'Проверяю ответы на вопросы, отвечать нужно в войс')
     await bot.set_my_short_description('По всем вопросам @fabilya')
+    dp.include_router(start_project_router)
     await dp.start_polling(
         bot,
         allowed_updates=dp.resolve_used_update_types())

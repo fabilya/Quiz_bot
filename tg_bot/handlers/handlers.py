@@ -1,25 +1,21 @@
-import uuid
-
 from aiogram import Router
-from aiogram.types import Message, UserProfilePhotos, FSInputFile
-
-from main import bot, dp
-
-router = Router()
+from aiogram.filters import Command
+from aiogram.fsm.context import FSMContext
+from aiogram.types import Message
 
 
-@dp.message()
-async def echo_handler(message: Message) -> None:
-    user_profile_photo: UserProfilePhotos = await bot.get_user_profile_photos(
-        message.from_user.id)
-    if user_profile_photo.total_count > 0:
-        file = await bot.get_file(user_profile_photo.photos[0][2].file_id)
-        filename = uuid.uuid4().hex
-        await bot.download_file(file.file_path, f'{filename}.jpg')
-        await bot.send_photo(
-            chat_id=message.from_user.id,
-            photo=FSInputFile(f'{filename}.jpg')
-        )
-    else:
-        print('У пользователя нет фото в профиле.')
+start_project_router = Router()
+
+GREETINGS = (
+    'Привет, {message.from_user.first_name}!\n'
+    'Я бот, который поможет вам проверить свои знания'
+)
+
+
+@start_project_router.message(Command('start'))
+async def command_start(message: Message, state: FSMContext):
+    """Ввод команды /start"""
+    await message.answer(GREETINGS.format(message=message))
+
+
 
