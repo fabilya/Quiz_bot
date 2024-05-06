@@ -16,6 +16,9 @@ class TgUser(models.Model):
                                 blank=True,
                                 null=True, )
 
+    def __str__(self):
+        return f'{self.first_name} {self.last_name}'
+
 
 class Question(models.Model):
     """Модель вопроса"""
@@ -27,3 +30,7 @@ class Question(models.Model):
                              verbose_name='Пользователь',
                              related_name='user_questions',
                              on_delete=models.CASCADE, )
+
+    def __str__(self):
+        return self.text
+

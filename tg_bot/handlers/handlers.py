@@ -36,6 +36,3 @@ async def save_voice_as_mp3(message: Message):
     await message.answer(result['text'])
 
     os.remove(file_name)
-
-
-
