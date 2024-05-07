@@ -71,6 +71,12 @@ async def bd_question(message: Message, state: FSMContext, tg_user: TgUser):
     await delete_message(msg)
 
 
+@start_project_router.callback_query(F.data == 'quiz')
+async def quiz_time(callback: CallbackQuery):
+    await callback.message.delete()
+    await callback.message.answer('test')
+
+
 @start_project_router.message(F.voice)
 async def save_voice_as_mp3(message: Message):
     """
