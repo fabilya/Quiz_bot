@@ -7,6 +7,7 @@ from aiogram.types import Message
 
 from admin_panel.telegram.models import TgUser
 from tg_bot.db.db_commands import create_tg_user
+from tg_bot.keyboards.inline import question_kb
 from tg_bot.loader import bot
 from tg_bot.middlewares.blocking import BlockingMiddleware
 
@@ -17,7 +18,8 @@ start_project_router.callback_query.middleware(BlockingMiddleware())
 
 GREETINGS = (
     'Привет, {message.from_user.first_name}!\n'
-    'Я бот, который поможет вам проверить свои знания'
+    '<b>Я бот, который поможет тебе проверить свои знания</b>\n'
+    'Как будешь готов, жми кнопку "Записать вопрос"'
 )
 
 
@@ -28,7 +30,8 @@ async def command_start(message: Message, tg_user: TgUser):
         await create_tg_user(
             user=message.from_user
         )
-    await message.answer(GREETINGS.format(message=message))
+    await message.answer(GREETINGS.format(message=message),
+                         reply_markup=question_kb())
 
 
 @start_project_router.message(F.voice)
