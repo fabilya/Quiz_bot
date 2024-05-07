@@ -10,7 +10,7 @@ from thefuzz import fuzz
 from admin_panel.telegram.models import TgUser
 from tg_bot.db.db_commands import create_tg_user, create_question, \
     random_question, count_questions, check_answer
-from tg_bot.keyboards.inline import question_kb, quiz
+from tg_bot.keyboards.inline import question_kb, quiz, next_question
 from tg_bot.loader import bot
 from tg_bot.middlewares.blocking import BlockingMiddleware
 from tg_bot.misc.utils import delete_message
@@ -38,7 +38,19 @@ ACCEPT_QUESTION = (
 
 ANSWER_FOR_QUESTION = (
     'Твой вопрос: {question}\n'
-    'Отвечай с помощью воиса 📢'
+    'Отвечай с помощью воиса 📢\n'
+    'Нажми на микрофон и начни говорить\n'
+)
+
+CANCEL_QUIZ = (
+    'Ты закончил викторину. Когда будешь готов, жми "Викторина"\n'
+    'А если хочешь добавить новые вопросы - жми "Записать вопрос"'
+)
+
+CONGRATS = (
+    'Поздравляю, ответ правильный! 🎉\n'
+    'Ваш ответ был: <b>{context_data}</b>\n'
+    'Что на {rating}% 🎯 схож с ответом из БД'
 )
 
 
@@ -81,12 +93,10 @@ async def bd_question(message: Message, state: FSMContext, tg_user: TgUser):
         user=tg_user
     )
     msg = await message.answer(ACCEPT_QUESTION, reply_markup=quiz())
-    await state.clear()
     await delete_message(msg)
-    await state.set_state(Answer.get_question)
 
 
-@start_project_router.callback_query(Answer.get_question, F.data == 'quiz')
+@start_project_router.callback_query(F.data == 'quiz')
 async def quiz_time(callback: CallbackQuery, state: FSMContext,
                     tg_user: TgUser):
     await callback.message.delete()
@@ -95,11 +105,19 @@ async def quiz_time(callback: CallbackQuery, state: FSMContext,
         question = await random_question(user=tg_user)
         await state.update_data(get_question=question)
         await callback.message.answer(
-            ANSWER_FOR_QUESTION.format(question=question))
+            ANSWER_FOR_QUESTION.format(question=question), reply_markup=next_question())
         await state.set_state(Answer.get_answer)
     else:
         await callback.message.answer('Ты не записал ни одного вопроса!',
                                       reply_markup=question_kb())
+
+
+@start_project_router.callback_query(F.data == 'cancel')
+async def cancel(callback: CallbackQuery, state: FSMContext):
+    """Отмена."""
+    await callback.message.answer(CANCEL_QUIZ, reply_markup=quiz())
+    await callback.message.delete()
+    await state.clear()
 
 
 @start_project_router.message(Answer.get_answer, F.voice)
@@ -117,8 +135,9 @@ async def save_voice_as_mp3(message: Message, state: FSMContext):
     await state.update_data(get_answer=result['text'])
     context_data = await state.get_data()
     get_original_answer = await check_answer(context_data['get_question'])
-    if fuzz.ratio(context_data['get_answer'], get_original_answer) > 70:
-        await message.answer(f'Поздравляю, ответ: <b>{result["text"]}</b> правильный!')
+    rating = fuzz.ratio(get_original_answer, context_data['get_answer'])
+    if rating > 60:
+        await message.answer(CONGRATS.format(rating=rating, context_data=context_data["get_answer"]))
     else:
-        await message.answer(f'Ответ {result["text"]} не правильный')
+        await message.answer(f'Ответ {context_data["get_answer"]} не правильный')
     os.remove(file_name)
