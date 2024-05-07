@@ -7,7 +7,8 @@ from aiogram.fsm.context import FSMContext
 from aiogram.types import Message, CallbackQuery
 
 from admin_panel.telegram.models import TgUser
-from tg_bot.db.db_commands import create_tg_user, create_question
+from tg_bot.db.db_commands import create_tg_user, create_question, \
+    list_of_questions
 from tg_bot.keyboards.inline import question_kb, quiz
 from tg_bot.loader import bot
 from tg_bot.middlewares.blocking import BlockingMiddleware
@@ -28,6 +29,11 @@ ACCEPT_QUESTION = (
     'Твой вопрос и ответ успешно записаны!\n'
     'Чтобы начать проверку знаний - жми "Викторина"\n'
     'Если хочешь добавить ещё вопросы - жми "Записать вопрос"!'
+)
+
+ANSWER_FOR_QUESTION = (
+    'Твой вопрос: {question}\n'
+    'Отвечай с помощью воиса 📢'
 )
 
 
@@ -72,9 +78,10 @@ async def bd_question(message: Message, state: FSMContext, tg_user: TgUser):
 
 
 @start_project_router.callback_query(F.data == 'quiz')
-async def quiz_time(callback: CallbackQuery):
+async def quiz_time(callback: CallbackQuery, tg_user: TgUser):
     await callback.message.delete()
-    await callback.message.answer('test')
+    question = await list_of_questions(user=tg_user)
+    await callback.message.answer(ANSWER_FOR_QUESTION.format(question=question))
 
 
 @start_project_router.message(F.voice)

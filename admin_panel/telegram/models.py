@@ -32,5 +32,5 @@ class Question(models.Model):
                              on_delete=models.CASCADE, )
 
     def __str__(self):
-        return self.text
+        return f'{self.user} {self.text}'
 

@@ -30,3 +30,11 @@ def create_question(user: TgUser, add_question: str, add_answer: str):
         user=user,
     )
     return question
+
+
+@sync_to_async
+def list_of_questions(user: TgUser):
+    """Возвращает рандомный вопрос пользователя из БД"""
+    get_random_question = Question.objects.filter(user=user).order_by('?').first().text
+    return get_random_question
+
