@@ -5,15 +5,16 @@ from aiogram import Router, F
 from aiogram.filters import Command
 from aiogram.fsm.context import FSMContext
 from aiogram.types import Message, CallbackQuery
+from thefuzz import fuzz
 
 from admin_panel.telegram.models import TgUser
 from tg_bot.db.db_commands import create_tg_user, create_question, \
-    list_of_questions
+    random_question, count_questions, check_answer
 from tg_bot.keyboards.inline import question_kb, quiz
 from tg_bot.loader import bot
 from tg_bot.middlewares.blocking import BlockingMiddleware
 from tg_bot.misc.utils import delete_message
-from tg_bot.states.all_states import Question
+from tg_bot.states.all_states import Question, Answer
 
 start_project_router = Router()
 start_project_router.message.middleware(BlockingMiddleware())
@@ -23,6 +24,10 @@ GREETINGS = (
     'Привет, {message.from_user.first_name}!\n'
     '<b>Я бот, который поможет тебе проверить свои знания</b>\n'
     'Как будешь готов, жми кнопку "Записать вопрос"'
+)
+
+GREETINGS2 = (
+    'Рад снова тебя видеть, {message.from_user.first_name}!\n'
 )
 
 ACCEPT_QUESTION = (
@@ -38,15 +43,18 @@ ANSWER_FOR_QUESTION = (
 
 
 @start_project_router.message(Command('start'))
-async def command_start(message: Message, tg_user: TgUser):
+async def command_start(message: Message, state: FSMContext, tg_user: TgUser):
     """Ввод команды /start"""
     if not tg_user:
         await create_tg_user(
             user=message.from_user
         )
-    msg = await message.answer(GREETINGS.format(message=message),
-                               reply_markup=question_kb())
-    await delete_message(msg)
+        await message.answer(GREETINGS.format(message=message),
+                             reply_markup=question_kb())
+    else:
+        await message.answer(GREETINGS2.format(message=message),
+                             reply_markup=quiz())
+        await state.set_state(Answer.get_question)
 
 
 @start_project_router.callback_query(F.data == 'question')
@@ -75,17 +83,27 @@ async def bd_question(message: Message, state: FSMContext, tg_user: TgUser):
     msg = await message.answer(ACCEPT_QUESTION, reply_markup=quiz())
     await state.clear()
     await delete_message(msg)
+    await state.set_state(Answer.get_question)
 
 
-@start_project_router.callback_query(F.data == 'quiz')
-async def quiz_time(callback: CallbackQuery, tg_user: TgUser):
+@start_project_router.callback_query(Answer.get_question, F.data == 'quiz')
+async def quiz_time(callback: CallbackQuery, state: FSMContext,
+                    tg_user: TgUser):
     await callback.message.delete()
-    question = await list_of_questions(user=tg_user)
-    await callback.message.answer(ANSWER_FOR_QUESTION.format(question=question))
+    questions = await count_questions(user=tg_user)
+    if questions > 0:
+        question = await random_question(user=tg_user)
+        await state.update_data(get_question=question)
+        await callback.message.answer(
+            ANSWER_FOR_QUESTION.format(question=question))
+        await state.set_state(Answer.get_answer)
+    else:
+        await callback.message.answer('Ты не записал ни одного вопроса!',
+                                      reply_markup=question_kb())
 
 
-@start_project_router.message(F.voice)
-async def save_voice_as_mp3(message: Message):
+@start_project_router.message(Answer.get_answer, F.voice)
+async def save_voice_as_mp3(message: Message, state: FSMContext):
     """
     Скачивает голосовое сообщение и сохраняет его в формате mp3.
     После преобразования аудио в текст - удаляет файл.
@@ -94,8 +112,13 @@ async def save_voice_as_mp3(message: Message):
     file_name = f'{split_tup[0]}_{message.from_user.full_name}.mp3'
     await bot.download(message.voice.file_id, file_name)
 
-    model = whisper.load_model("base")
-    result = model.transcribe(file_name, fp16=False)
-    await message.answer(result['text'])
-
+    model = whisper.load_model("small")
+    result = model.transcribe(file_name, fp16=False, language='ru')
+    await state.update_data(get_answer=result['text'])
+    context_data = await state.get_data()
+    get_original_answer = await check_answer(context_data['get_question'])
+    if fuzz.ratio(context_data['get_answer'], get_original_answer) > 70:
+        await message.answer('Поздравляю, ты правильно ответил на вопрос!')
+    else:
+        await message.answer(f'Ответ {result["text"]} не правильный')
     os.remove(file_name)

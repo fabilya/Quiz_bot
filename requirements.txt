@@ -1,8 +1,11 @@
-aiogram
-Django
-python-dotenv
+aiogram~=3.4.1
+Django~=4.2.12
+python-dotenv~=1.0.1
 openai-whisper
 setuptools-rust
 tiktoken
 django-grappelli
 
+
+asgiref~=3.8.1
+thefuzz~=0.22.1

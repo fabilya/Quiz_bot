@@ -33,8 +33,21 @@ def create_question(user: TgUser, add_question: str, add_answer: str):
 
 
 @sync_to_async
-def list_of_questions(user: TgUser):
+def random_question(user: TgUser):
     """Возвращает рандомный вопрос пользователя из БД"""
     get_random_question = Question.objects.filter(user=user).order_by('?').first().text
     return get_random_question
 
+
+@sync_to_async
+def count_questions(user: TgUser):
+    """Возвращает количество вопросов пользователя"""
+    sum_questions = Question.objects.filter(user=user).count()
+    return sum_questions
+
+
+@sync_to_async
+def check_answer(question):
+    """Возвращает ответ на рандомный вопрос"""
+    quest_obj = Question.objects.filter(text=question).first()
+    return quest_obj.answer_text
