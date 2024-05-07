@@ -1,24 +1,27 @@
-from pathlib import Path
+import os
 
-BASE_DIR = Path(__file__).resolve().parent.parent
+from dotenv import load_dotenv
 
+from admin_panel import telegram
 
-SECRET_KEY = 'django-insecure-cl@2=+9xa#g3%9d&$4rx5tm1k75b+3*@1&5kv4&su!j@ccj!eu'
+load_dotenv()
 
-DEBUG = True
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
+SECRET_KEY = os.getenv('SECRET_KEY', 'default_key')
+
+DEBUG = os.getenv('DEBUG', 'False') == 'True'
 
 ALLOWED_HOSTS = []
 
-
 INSTALLED_APPS = [
-    'grappelli',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'telegram.apps.TelegramConfig',
+    'admin_panel.telegram.apps.TelegramConfig',
 ]
 
 MIDDLEWARE = [
@@ -31,7 +34,7 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-ROOT_URLCONF = 'django_settings.urls'
+ROOT_URLCONF = 'admin_panel.django_settings.urls'
 
 TEMPLATES = [
     {
@@ -49,16 +52,14 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = 'django_settings.wsgi.application'
-
+WSGI_APPLICATION = 'admin_panel.django_settings.wsgi.application'
 
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
     }
 }
-
 
 AUTH_PASSWORD_VALIDATORS = [
     {
@@ -75,7 +76,6 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-
 LANGUAGE_CODE = 'en-us'
 
 TIME_ZONE = 'UTC'
@@ -84,6 +84,9 @@ USE_I18N = True
 
 USE_TZ = True
 
-STATIC_URL = 'static/'
+STATIC_URL = '/static/'
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media').replace('\\', '/')
 
+STATIC_ROOT = os.path.join(BASE_DIR, 'collected_static')
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
