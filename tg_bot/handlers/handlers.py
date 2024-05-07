@@ -118,7 +118,7 @@ async def save_voice_as_mp3(message: Message, state: FSMContext):
     context_data = await state.get_data()
     get_original_answer = await check_answer(context_data['get_question'])
     if fuzz.ratio(context_data['get_answer'], get_original_answer) > 70:
-        await message.answer('Поздравляю, ты правильно ответил на вопрос!')
+        await message.answer(f'Поздравляю, ответ: <b>{result["text"]}</b> правильный!')
     else:
         await message.answer(f'Ответ {result["text"]} не правильный')
     os.remove(file_name)
