@@ -136,7 +136,7 @@ async def save_voice_as_mp3(message: Message, state: FSMContext):
     context_data = await state.get_data()
     get_original_answer = await check_answer(context_data['get_question'])
     rating = fuzz.ratio(get_original_answer, context_data['get_answer'])
-    if rating > 60:
+    if rating > 50:
         await message.answer(CONGRATS.format(rating=rating, context_data=context_data["get_answer"]))
     else:
         await message.answer(f'Ответ {context_data["get_answer"]} не правильный')
