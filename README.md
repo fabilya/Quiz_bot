@@ -15,16 +15,12 @@
 
 ### Используемые технологии:
 
-- `Python`
-- `Aiogram`
 - `Django`
-- `Openai-whisper`
-- `Pytorch`
-- `Ffmpeg`
-- `Setuptools-rust`
-- `Tiktoken`
-- `Django-grappelli`
-- `Thefuzz`
+- `aiogram`
+- `python-dotenv`
+- `django-grappelli`
+- `openai-whisper`
+- `thefuzz`
 
 ### Инструкции по установке
 
