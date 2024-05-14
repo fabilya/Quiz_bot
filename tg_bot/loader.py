@@ -3,8 +3,9 @@ import django
 
 from aiogram import Bot, Dispatcher
 from aiogram.fsm.storage.memory import MemoryStorage
+from aiogram.fsm.storage.redis import RedisStorage, Redis
 
-from tg_bot.config import BOT_TOKEN
+from tg_bot.config import BOT_TOKEN, DEBUG
 
 
 def setup_django():
@@ -23,6 +24,9 @@ def include_all_routers():
 
 setup_django()
 bot = Bot(token=BOT_TOKEN, parse_mode='HTML')
-storage = MemoryStorage()
+if DEBUG:
+    storage = MemoryStorage()
+else:
+    storage = RedisStorage(Redis(host='redis'))
 dp = Dispatcher(storage=storage)
 include_all_routers()

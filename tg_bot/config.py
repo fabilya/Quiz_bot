@@ -6,7 +6,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 """Logging levels"""
-DEBUG = os.getenv('DEBUG', 'False')
+DEBUG = os.getenv('DEBUG')
 
 """Tokens"""
 BOT_TOKEN = os.getenv('BOT_TOKEN')

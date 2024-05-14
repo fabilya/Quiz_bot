@@ -1,6 +1,8 @@
-Django
-aiogram
+Django==4.2.4
+aiogram==3.4.1
 python-dotenv
 django-grappelli
 openai-whisper
 thefuzz
+psycopg2-binary==2.9.9
+redis==5.0.0

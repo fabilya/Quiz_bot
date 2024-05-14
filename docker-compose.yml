@@ -1,0 +1,53 @@
+version: '3'
+
+services:
+  db:
+    image: postgres:13.10
+    env_file: .env
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+    restart: always
+    
+  backend:
+    build: ./
+    env_file: .env
+    volumes:
+      - static:/backend_static
+    depends_on:
+      - db
+    command: >
+     sh -c "python django_app.py makemigrations &&
+     python django_app.py migrate &&
+     python django_app.py collectstatic --noinput &&
+     cp -r /app/admin_panel/collected_static/. /backend_static/static/ &&
+     python django_app.py runserver 0:8000"
+    restart: always
+    
+  bot:
+    build: ./
+    depends_on:
+       - backend
+    command: >
+      sh -c "python bot.py"
+    restart: always
+
+  gateway:
+    image: nginx:1.22.1
+    volumes:
+      - ./nginx.conf:/etc/nginx/templates/default.conf.template
+      - static:/staticfiles/
+    depends_on:
+      - db
+    ports:
+      - '80:80'
+    restart: always
+    
+  redis:
+    image: redis:alpine
+    env_file:
+      - .env
+    restart: always
+    
+volumes:
+  static:
+  pg_data:
