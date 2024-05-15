@@ -25,6 +25,7 @@ services:
     
   bot:
     image: fabilya/quiz_bot
+    env_file: .env
     depends_on:
        - backend
     command: >
