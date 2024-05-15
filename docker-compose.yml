@@ -9,7 +9,7 @@ services:
     restart: always
     
   backend:
-    build: ./
+    image: fabilya/quiz_bot
     env_file: .env
     volumes:
       - static:/backend_static
@@ -24,7 +24,7 @@ services:
     restart: always
     
   bot:
-    build: ./
+    image: fabilya/quiz_bot
     depends_on:
        - backend
     command: >
