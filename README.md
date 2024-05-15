@@ -5,6 +5,8 @@
 - [Возможности бота](#возможности-бота)
 - [Технологии](#используемые-технологии)
 - [Инструкция по установке](#инструкции-по-установке)
+  - [Запуск проекта в контейнерах](#для-запуска-в-контейнерах)
+  - [Запуск проекта локально](#для-запуска-локально)
 - [Автор](#автор-проекта)
 
 ### Возможности бота:
@@ -21,33 +23,53 @@
 - `django-grappelli`
 - `openai-whisper`
 - `thefuzz`
+- `reddis`
 
 ### Инструкции по установке
 
 * Клонируйте репозиторий и зайдите в него в командной строке:
 
-```GitBash
+```Bash
 git@github.com:fabilya/Quiz_bot.git
 cd quiz_bot
 ```
 
+* Пример файла .env, который следует создать в корневой папке:
+```dotenv
+# Variables for PostgreSQL
+POSTGRES_DB=django
+POSTGRES_USER=django_user
+POSTGRES_PASSWORD=password
+
+
+# Variables for Django project:
+DEBUG=False
+SECRET_KEY=<SECRET_KEY>
+DB_HOST=db
+DB_PORT=5432
+
+# Variables for telegram bot
+BOT_TOKEN=<BOT_TOKEN>
+REDIS_HOST=redis
+REDIS_PORT=6379
+```
+
+#### Для запуска в контейнерах
+
+```Docker
+docker-compose up
+```
+
+#### Для запуска локально
 
 * Установите зависимости из файла requirements.txt:
 
-```
+```Bash
 python -m pip install --upgrade pip
 pip install -r requirements.txt
 ```
 
 Для корретной работы `openai-wisper` прочитайте документацию [OPENAI-WISPER](https://github.com/openai/whisper) раздел `setup`
-
-
-* Пример файла .env, который следует создать в корневой папке:
-```dotenv
-BOT_TOKEN=<TOKEN>
-DEBUG=<development>
-SECRET_KEY=<SECRET_KEY>
-```
 
 * Применение миграции в корневой папке проекта:
 
